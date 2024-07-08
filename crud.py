@@ -64,6 +64,9 @@ async def get_withdraw_link(link_id: str, num=0) -> Optional[WithdrawLink]:
     row = await db.fetchone(
         "SELECT * FROM withdraw.withdraw_link WHERE id = ?", (link_id,)
     )
+    print("DB ROW")
+    print(row)
+    
     if not row:
         return None
 

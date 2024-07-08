@@ -71,6 +71,7 @@ async def api_link_create_or_update(
     link_id: Optional[str] = None,
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ):
+    print("Hello we are here!")
     if data.uses > 250:
         raise HTTPException(detail="250 uses max.", status_code=HTTPStatus.BAD_REQUEST)
 
@@ -105,6 +106,8 @@ async def api_link_create_or_update(
 
     if link_id:
         link = await get_withdraw_link(link_id, 0)
+        print("Link")
+        print(link_id)
         if not link:
             raise HTTPException(
                 detail="Withdraw link does not exist.", status_code=HTTPStatus.NOT_FOUND
@@ -121,17 +124,34 @@ async def api_link_create_or_update(
                     detail="Cannot reduce uses below current used.", status_code=HTTPStatus.BAD_REQUEST
                 )
             numbers = link.usescsv.split(",")
+            print("I am here and setting usescsv to 0")
+            print(numbers[:data.uses - link.used])
             usescsv = ",".join(numbers[:data.uses - link.used])
             data_dict["usescsv"] = usescsv
-
+        
         if link.uses < data.uses:
-            numbers = link.usescsv.split(",")
-            current_number = int(numbers[-1])
-            while len(numbers) < (data.uses - link.used):
-                current_number += 1
-                numbers.append(str(current_number))
-            usescsv = ",".join(numbers)
-            data_dict["usescsv"] = usescsv
+                numbers = link.usescsv.split(",")
+                
+                print("Numbers")
+                print(numbers)
+                print("Uses")
+                print(data.uses)
+                print("Used")
+                print(link.used)
+                
+                if numbers[-1] == "":
+                    current_number = int(link.uses)
+                    numbers[-1] = str(link.uses)
+                else:
+                    current_number = int(numbers[-1])
+                    
+                while len(numbers) < (data.uses - link.used):
+                    current_number += 1
+                    numbers.append(str(current_number))
+                print("Out of the loop")
+                usescsv = ",".join(numbers)
+                data_dict["usescsv"] = usescsv
+                print("Finished")
                         
         link = await update_withdraw_link(link_id, **data_dict)
     else:

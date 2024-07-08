@@ -148,6 +148,7 @@ async def api_lnurl_callback(
 
 
 def check_unique_link(link: WithdrawLink, unique_hash: str) -> bool:
+    print("Check unique links")
     return any(
         unique_hash == shortuuid.uuid(name=link.id + link.unique_hash + x.strip())
         for x in link.usescsv.split(",")
