@@ -62,6 +62,16 @@ async def api_link_retrieve(
         )
     return {**link.dict(), **{"lnurl": link.lnurl(request)}}
 
+@withdraw_ext.post("/api/v1/batchlinks", status_code=HTTPStatus.CREATED)
+async def create_batch_links(req: Request,
+    data: CreateWithdrawData,
+    link_id: Optional[str] = None,
+    wallet: WalletTypeInfo = Depends(require_admin_key),):
+    for x in range(100):
+        link = await create_withdraw_link(wallet_id=wallet.wallet.id, data=data)
+    assert link
+    return {**link.dict(), **{"lnurl": link.lnurl(req)}}
+
 
 @withdraw_ext.post("/api/v1/links", status_code=HTTPStatus.CREATED)
 @withdraw_ext.put("/api/v1/links/{link_id}", status_code=HTTPStatus.OK)
