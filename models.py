@@ -18,7 +18,10 @@ class CreateWithdrawData(BaseModel):
     webhook_headers: str = Query(None)
     webhook_body: str = Query(None)
     custom_url: str = Query(None)
-
+    
+class RetrieveWithdrawLinksQuery(BaseModel):
+    limit: str = Query(...)
+    offset: int = Query(...)
 
 class WithdrawLink(BaseModel):
     id: str
