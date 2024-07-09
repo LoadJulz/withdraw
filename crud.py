@@ -1,5 +1,7 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Generic, List, Optional, TypeVar, Union
+
+from pydantic import BaseModel
 
 import shortuuid
 
@@ -98,6 +100,28 @@ async def get_withdraw_links(wallet_ids: Union[str, List[str]]) -> List[Withdraw
         f"SELECT * FROM withdraw.withdraw_link WHERE wallet IN ({q}) ORDER BY open_time DESC", (*wallet_ids,)
     )
     return [WithdrawLink(**row) for row in rows]
+
+async def get_withdraw_links_test(wallet_ids: List[str], limit: int, offset: int) -> Page[WithdrawLink]:
+    rows = await db.fetchall(
+        """
+        SELECT * FROM withdraw.withdraw_link
+        WHERE wallet IN ({})
+        ORDER BY id DESC
+        LIMIT ? OFFSET ?
+        """.format(','.join('?' * len(wallet_ids))),
+        (*wallet_ids, limit, offset)
+    )
+    
+    total = await db.fetchone(
+        """
+        SELECT COUNT(*) as total FROM withdraw.withdraw_link
+        WHERE wallet IN ({})
+        """.format(','.join('?' * len(wallet_ids))),
+        (*wallet_ids,)
+    )
+    
+    # return Page(data=[WithdrawLink.parse_obj(dict(**row)) for row in rows], total=total['total'])
+    return "Hello world"
 
 
 async def remove_unique_withdraw_link(link: WithdrawLink, unique_hash: str) -> None:
