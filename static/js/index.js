@@ -35,31 +35,18 @@ new Vue({
       withdrawLinks: [],
       withdrawLinksTable: {
         columns: [
-          {name: 'id', align: 'left', label: 'ID', field: 'id'},
-          {name: 'title', align: 'left', label: 'Title', field: 'title'},
-          {
-            name: 'wait_time',
-            align: 'right',
-            label: 'Wait',
-            field: 'wait_time'
-          },
-          {
-            name: 'uses',
-            align: 'right',
-            label: 'Created',
-            field: 'uses'
-          },
-          {
-            name: 'uses_left',
-            align: 'right',
-            label: 'Uses left',
-            field: 'uses_left'
-          },
-          {name: 'min', align: 'right', label: 'Min (sat)', field: 'min_fsat'},
-          {name: 'max', align: 'right', label: 'Max (sat)', field: 'max_fsat'}
+          { name: 'id', align: 'left', label: 'ID', field: 'id' },
+          { name: 'title', align: 'left', label: 'Title', field: 'title' },
+          { name: 'wait_time', align: 'right', label: 'Wait', field: 'wait_time' },
+          { name: 'uses', align: 'right', label: 'Created', field: 'uses' },
+          { name: 'uses_left', align: 'right', label: 'Uses left', field: 'uses_left' },
+          { name: 'min', align: 'right', label: 'Min (sat)', field: 'min_fsat' },
+          { name: 'max', align: 'right', label: 'Max (sat)', field: 'max_fsat' }
         ],
         pagination: {
-          rowsPerPage: 10
+          page: 1,
+          rowsPerPage: 10,
+          rowsNumber: 0
         }
       },
       nfcTagWriting: false,
@@ -87,34 +74,43 @@ new Vue({
         show: false,
         data: null
       }
-    }
+    };
   },
   computed: {
     sortedWithdrawLinks: function () {
       return this.withdrawLinks.sort(function (a, b) {
-        return b.uses_left - a.uses_left
-      })
+        return b.uses_left - a.uses_left;
+      });
     }
   },
   methods: {
-    getWithdrawLinks: function () {
-      var self = this
-
+    getWithdrawLinks: function (props) {
+      if (props) {
+        this.withdrawLinksTable.pagination = props.pagination;
+      }
+  
+      let pagination = this.withdrawLinksTable.pagination;
+      const query = {
+        limit: pagination.rowsPerPage,
+        offset: (pagination.page - 1) * pagination.rowsPerPage
+      };
+  
+      var self = this;
       LNbits.api
-        .request(
-          'GET',
-          '/withdraw/api/v1/links?all_wallets=true',
-          this.g.user.wallets[0].inkey
-        )
+        .request('GET', '/withdraw/api/v1/links?all_wallets=true', this.g.user.wallets[0].inkey, { params: query })
         .then(function (response) {
+          console.log("We got a response")
           self.withdrawLinks = response.data.map(function (obj) {
-            return mapWithdrawLink(obj)
-          })
+            return mapWithdrawLink(obj);
+          });
+          self.withdrawLinksTable.pagination.rowsNumber = response.data.total;
         })
         .catch(function (error) {
-          clearInterval(self.checker)
-          LNbits.utils.notifyApiError(error)
-        })
+          clearInterval(self.checker);
+          console.log("We got an error")
+          console.log(error)
+          LNbits.utils.notifyApiError(error);
+        });
     },
     closeFormDialog: function () {
       this.formDialog.data = {
@@ -309,11 +305,8 @@ new Vue({
   },
   created: function () {
     if (this.g.user.wallets.length) {
-      var getWithdrawLinks = this.getWithdrawLinks
-      getWithdrawLinks()
-      this.checker = setInterval(function () {
-        getWithdrawLinks()
-      }, 300000)
+      this.getWithdrawLinks();
+      this.checker = setInterval(this.getWithdrawLinks, 300000);
     }
   }
 })
