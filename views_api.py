@@ -17,32 +17,68 @@ from .crud import (
     get_withdraw_links,
     update_withdraw_link,
 )
-from .models import CreateWithdrawData
+from .models import CreateWithdrawData, RetrieveWithdrawLinksQuery
 
 
 @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
 async def api_links(
     req: Request,
+    query: RetrieveWithdrawLinksQuery,
     wallet: WalletTypeInfo = Depends(get_key_type),
     all_wallets: bool = Query(False),
 ):
     wallet_ids = [wallet.wallet.id]
+    
+    print("Limit")
+    print(query.limit)
+    print("Offset")
+    print(query.offset)
 
     if all_wallets:
         user = await get_user(wallet.wallet.user)
         wallet_ids = user.wallet_ids if user else []
 
     try:
-        return [
-            {**link.dict(), **{"lnurl": link.lnurl(req)}}
-            for link in await get_withdraw_links(wallet_ids)
-        ]
+        links, total = await get_withdraw_links(wallet_ids, query.limit, query.offset)
+        print("In Api Links")
+        print("Links")
+        print(links)
+        print("Total")
+        print(total)
+        return {
+            "data": [{**link.dict(), **{"lnurl": link.lnurl(req)}} for link in links],
+            "total": total,
+        }
 
     except LnurlInvalidUrl:
         raise HTTPException(
             status_code=HTTPStatus.UPGRADE_REQUIRED,
-            detail="LNURLs need to be delivered over a publically accessible `https` domain or Tor.",
+            detail="LNURLs need to be delivered over a publicly accessible `https` domain or Tor.",
         )
+
+# @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
+# async def api_links(
+#     req: Request,
+#     wallet: WalletTypeInfo = Depends(get_key_type),
+#     all_wallets: bool = Query(False),
+# ):
+#     wallet_ids = [wallet.wallet.id]
+
+#     if all_wallets:
+#         user = await get_user(wallet.wallet.user)
+#         wallet_ids = user.wallet_ids if user else []
+
+#     try:
+#         return [
+#             {**link.dict(), **{"lnurl": link.lnurl(req)}}
+#             for link in await get_withdraw_links(wallet_ids)
+#         ]
+
+#     except LnurlInvalidUrl:
+#         raise HTTPException(
+#             status_code=HTTPStatus.UPGRADE_REQUIRED,
+#             detail="LNURLs need to be delivered over a publically accessible `https` domain or Tor.",
+#         )
 
 
 @withdraw_ext.get("/api/v1/links/{link_id}", status_code=HTTPStatus.OK)
