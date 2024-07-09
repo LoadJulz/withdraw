@@ -7,6 +7,7 @@ from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
 
 from lnbits.core.crud import get_user
 from lnbits.decorators import WalletTypeInfo, get_key_type, require_admin_key
+from withdraw.page import Page
 
 from . import withdraw_ext
 from .crud import (
@@ -17,8 +18,35 @@ from .crud import (
     get_withdraw_links,
     update_withdraw_link,
 )
-from .models import CreateWithdrawData
+from .models import CreateWithdrawData, WithdrawLink
 
+
+# @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
+# async def api_links(
+#     req: Request,
+#     wallet: WalletTypeInfo = Depends(get_key_type),
+#     all_wallets: bool = Query(False),
+#     limit: int = Query(10),
+#     offset: int = Query(0),
+# ) -> Page[WithdrawLink]:
+#     wallet_ids = [wallet.wallet.id]
+
+#     if all_wallets:
+#         user = await get_user(wallet.wallet.user)
+#         wallet_ids = user.wallet_ids if user else []
+
+#     try:
+#         page = await get_withdraw_links(wallet_ids, limit, offset)
+#         return Page(
+#             data=[{**link.dict(), **{"lnurl": link.lnurl(req)}} for link in page.data],
+#             total=page.total,
+#         )
+
+#     except LnurlInvalidUrl:
+#         raise HTTPException(
+#             status_code=HTTPStatus.UPGRADE_REQUIRED,
+#             detail="LNURLs need to be delivered over a publicly accessible `https` domain or Tor.",
+#         )
 
 @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
 async def api_links(
