@@ -20,6 +20,33 @@ from .crud import (
 from .models import CreateWithdrawData
 
 
+# @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
+# async def api_links(
+#     req: Request,
+#     wallet: WalletTypeInfo = Depends(get_key_type),
+#     all_wallets: bool = Query(False),
+#     limit: int = Query(10),
+#     offset: int = Query(0),
+# ) -> Page[WithdrawLink]:
+#     wallet_ids = [wallet.wallet.id]
+
+#     if all_wallets:
+#         user = await get_user(wallet.wallet.user)
+#         wallet_ids = user.wallet_ids if user else []
+
+#     try:
+#         page = await get_withdraw_links(wallet_ids, limit, offset)
+#         return Page(
+#             data=[{**link.dict(), **{"lnurl": link.lnurl(req)}} for link in page.data],
+#             total=page.total,
+#         )
+
+#     except LnurlInvalidUrl:
+#         raise HTTPException(
+#             status_code=HTTPStatus.UPGRADE_REQUIRED,
+#             detail="LNURLs need to be delivered over a publicly accessible `https` domain or Tor.",
+#         )
+
 @withdraw_ext.get("/api/v1/links", status_code=HTTPStatus.OK)
 async def api_links(
     req: Request,
