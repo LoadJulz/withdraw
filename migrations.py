@@ -139,3 +139,12 @@ async def m007_add_created_at_timestamp(db):
         "ALTER TABLE withdraw.withdraw_link "
         f"ADD COLUMN created_at TIMESTAMP DEFAULT {db.timestamp_column_default}"
     )
+
+
+async def m008_add_disabled_flag(db):
+    """
+    Adds disabled flag to withdraw_link
+    """
+    await db.execute(
+        "ALTER TABLE withdraw.withdraw_link ADD COLUMN disabled INTEGER DEFAULT 0;"
+    )

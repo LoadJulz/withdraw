@@ -46,6 +46,9 @@ async def api_lnurl_response(
     if link.is_spent:
         return LnurlErrorResponse(reason="Withdraw is spent.")
 
+    if getattr(link, "disabled", False):
+        return LnurlErrorResponse(reason="Withdraw link is disabled.")
+
     if link.is_unique:
         return LnurlErrorResponse(reason="This link requires an id_unique_hash.")
 
@@ -90,6 +93,9 @@ async def api_lnurl_callback(
     link = await get_withdraw_link_by_hash(unique_hash)
     if not link:
         return LnurlErrorResponse(reason="withdraw link not found.")
+
+    if getattr(link, "disabled", False):
+        return LnurlErrorResponse(reason="Withdraw link is disabled.")
 
     if link.is_spent:
         return LnurlErrorResponse(reason="withdraw is spent.")
@@ -196,6 +202,9 @@ async def api_lnurl_multi_response(
 
     if link.is_spent:
         return LnurlErrorResponse(reason="Withdraw is spent.")
+
+    if getattr(link, "disabled", False):
+        return LnurlErrorResponse(reason="Withdraw link is disabled.")
 
     if not check_unique_link(link, id_unique_hash):
         return LnurlErrorResponse(reason="id_unique_hash not found for this link.")

@@ -28,6 +28,7 @@ async def create_withdraw_link(
         wait_time=data.wait_time,
         is_unique=data.is_unique,
         usescsv=available_links,
+        disabled=data.disabled if hasattr(data, "disabled") else False,
         webhook_url=data.webhook_url,
         webhook_headers=data.webhook_headers,
         webhook_body=data.webhook_body,
